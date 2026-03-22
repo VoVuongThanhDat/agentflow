@@ -46,9 +46,6 @@ agentflow/
 │       ├── web-design-guidelines/
 │       ├── writing-plans/
 │       └── writing-skills/
-├── templates/           # Starter configs for new projects
-│   ├── CLAUDE.md.template
-│   └── settings.json.template
 ├── skills-lock.json     # Skills version lock file
 └── .gitignore
 ```
@@ -120,13 +117,6 @@ Slash commands (`.claude/commands/opsx/`) that chain agents into pipelines:
 
 One command runs the full pipeline. You describe the feature. Agents do the rest. You review the PR.
 
-### Templates — Quick Start
-
-Starter configurations (`templates/`) for new projects:
-
-- `CLAUDE.md.template` — project instructions template
-- `settings.json.template` — permission presets for agent workflows
-
 ## How It Works
 
 agentflow combines three open-source tools:
@@ -157,25 +147,29 @@ Feature Request
 ## Quick Start
 
 ```bash
-# 1. Clone agentflow into your project
-git clone https://github.com/<org>/agentflow .agentflow
+# 1. Clone agentflow
+git clone https://github.com/VoVuongThanhDat/agentflow.git
 
-# 2. Copy .claude into your project
-cp -r .agentflow/.claude .claude/
-
-# 3. Open Claude Code and run the DEVOPS agent in INIT mode
-#    It will automatically:
-#    - Install Beads (bd) and OpenSpec if missing
-#    - Initialize the Beads database
-#    - Pull latest state and show context
-#    In Claude Code, use the DEVOPS agent:
-@devops INIT
-
-# 4. Start building features
-/opsx:feature
+# 2. Copy .claude/ into your project
+cp -r agentflow/.claude /path/to/your-project/.claude
 ```
 
-The DEVOPS agent handles all setup — no manual installation needed.
+Then open Claude Code in your project and run the DEVOPS agent:
+
+```
+@devops INIT
+```
+
+The DEVOPS agent will automatically:
+- Install **Beads** (bd) and **OpenSpec** if missing
+- Initialize the Beads database
+- Pull latest state and show context
+
+Once init is complete, start building:
+
+```
+/opsx:feature
+```
 
 ## Key Principles
 
