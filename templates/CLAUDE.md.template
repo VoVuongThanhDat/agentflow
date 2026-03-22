@@ -1,0 +1,66 @@
+# {{PROJECT_NAME}} — Agent Instructions
+
+## Project Overview
+
+{{PROJECT_DESCRIPTION}}
+
+## Architecture
+
+```
+User: "I want feature X"
+         ↓
+   ┌──────────┐  specs    ┌──────────┐  dispatch   ┌──────────┐
+   │    BA    │ ────────▶ │ DEV Lead │ ──────────▶ │ DEV-BE   │
+   │ (specs)  │           │(beads +  │             │ DEV-FE   │
+   └──────────┘           │ dispatch)│             └──────────┘
+                          └──────────┘                  ↓
+                                                  ┌──────────┐
+                                                  │ TESTER   │
+                                                  └──────────┘
+                                                       ↓
+                                                  ┌──────────┐
+                                                  │ DEVOPS   │
+                                                  └──────────┘
+```
+
+## Subagents
+
+Defined in `.claude/agents/`:
+
+| Agent | File | Role | Model |
+|-------|------|------|-------|
+| `ba` | `ba.md` | Gather requirements, create specs | Opus |
+| `dev-lead` | `dev-lead.md` | Sync specs → Beads, label tasks, dispatch | Sonnet |
+| `dev-be` | `dev-be.md` | Backend tasks | Sonnet |
+| `dev-fe` | `dev-fe.md` | Frontend tasks | Sonnet |
+| `tester` | `tester.md` | Validate completed work | Sonnet |
+| `devops` | `devops.md` | PRs, Beads sync | Sonnet |
+
+## Commands
+
+| Command | Purpose |
+|---------|---------|
+| `/opsx:feature` | Full pipeline: BA → DEV Lead → DEV → TESTER → DEVOPS |
+| `/opsx:propose` | Create specs only (BA) |
+| `/opsx:sync` | Sync specs to Beads (DEV Lead) |
+| `/opsx:status` | View combined progress |
+
+## Rules
+
+- Beads is the source of truth for task status
+- Task descriptions in Beads must be self-contained
+- One branch per task: `agent/<bead-id>-<short-desc>`
+- Always run TESTER before merge
+- 1 DEV agent at a time
+
+## Beads Commands
+
+```bash
+bd ready                          # Unblocked tasks
+bd show <id>                      # Task details
+bd update <id> --claim            # Claim a task
+bd close <id> -r "Done"           # Complete a task
+bd graph --all                    # Dependency graph
+bd memories                       # Show long memories
+bd remember "insight" --key name  # Save memory
+```

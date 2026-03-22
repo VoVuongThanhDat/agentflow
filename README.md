@@ -8,10 +8,49 @@ An open-source toolkit for building autonomous multi-agent development workflows
 
 ```
 agentflow/
-├── agents/       # Ready-to-use agent definitions
-├── skills/       # Behavioral guardrails and best practices
-├── flows/        # End-to-end orchestration commands
-└── templates/    # Starter configs for new projects
+├── .claude/
+│   ├── agents/          # Ready-to-use agent definitions
+│   │   ├── ba.md
+│   │   ├── dev-lead.md
+│   │   ├── dev-be.md
+│   │   ├── dev-fe.md
+│   │   ├── tester.md
+│   │   └── devops.md
+│   ├── commands/
+│   │   └── opsx/        # End-to-end orchestration commands
+│   │       ├── feature.md
+│   │       ├── sync.md
+│   │       └── status.md
+│   └── skills/          # Behavioral guardrails and best practices (24 skills)
+│       ├── api-design-principles/
+│       ├── brainstorming/
+│       ├── dispatching-parallel-agents/
+│       ├── executing-plans/
+│       ├── fastapi-templates/
+│       ├── finishing-a-development-branch/
+│       ├── openspec-apply-change/
+│       ├── openspec-archive-change/
+│       ├── openspec-explore/
+│       ├── openspec-propose/
+│       ├── python-performance-optimization/
+│       ├── python-testing-patterns/
+│       ├── receiving-code-review/
+│       ├── requesting-code-review/
+│       ├── subagent-driven-development/
+│       ├── systematic-debugging/
+│       ├── test-driven-development/
+│       ├── using-git-worktrees/
+│       ├── using-superpowers/
+│       ├── verification-before-completion/
+│       ├── vercel-react-best-practices/
+│       ├── web-design-guidelines/
+│       ├── writing-plans/
+│       └── writing-skills/
+├── templates/           # Starter configs for new projects
+│   ├── CLAUDE.md.template
+│   └── settings.json.template
+├── skills-lock.json     # Skills version lock file
+└── .gitignore
 ```
 
 ### Agents — Specialized AI Workers
@@ -31,39 +70,62 @@ Each agent has one job. No role bleed. The DEV Lead labels tasks as `backend` or
 
 ### Skills — Engineering Culture for AI
 
-Behavioral instructions that change *how* agents work, not *what* they do:
+Behavioral instructions (`.claude/skills/*/SKILL.md`) that change *how* agents work, not *what* they do:
 
+**Engineering Practices**
 - **systematic-debugging** — investigate before fixing, never guess
 - **test-driven-development** — tests first, implementation second
 - **verification-before-completion** — prove it works before claiming done
-- **fastapi-templates** — production-ready FastAPI patterns
 - **python-testing-patterns** — pytest fixtures, mocking, parameterization
+- **python-performance-optimization** — profiling and optimization best practices
+
+**Framework & Design**
+- **fastapi-templates** — production-ready FastAPI patterns
 - **vercel-react-best-practices** — React/Next.js patterns from Vercel engineering
 - **web-design-guidelines** — accessible, responsive UI standards
 - **api-design-principles** — REST/GraphQL design that scales
 
+**Workflow & Planning**
+- **brainstorming** — explore intent and requirements before implementation
+- **writing-plans** — structured implementation planning
+- **executing-plans** — execute plans with review checkpoints
+- **writing-skills** — create and verify new skills
+- **using-git-worktrees** — isolated feature work with git worktrees
+- **using-superpowers** — discover and use available skills
+- **dispatching-parallel-agents** — parallelize independent tasks
+- **subagent-driven-development** — execute plans with subagents
+- **finishing-a-development-branch** — guide merge/PR/cleanup decisions
+
+**OpenSpec Integration**
+- **openspec-explore** — thinking partner for exploring ideas
+- **openspec-propose** — propose changes with design, specs, and tasks
+- **openspec-apply-change** — implement tasks from an OpenSpec change
+- **openspec-archive-change** — archive completed changes
+
+**Code Review**
+- **requesting-code-review** — verify work meets requirements
+- **receiving-code-review** — handle review feedback with rigor
+
 Skills turn a capable model into a disciplined engineer.
 
-### Flows — End-to-End Orchestration
+### Commands — End-to-End Orchestration
 
-Slash commands that chain agents into pipelines:
+Slash commands (`.claude/commands/opsx/`) that chain agents into pipelines:
 
 | Command | Pipeline |
 |---------|----------|
 | `/opsx:feature` | BA → DEV Lead → DEV-BE/FE → TESTER → fix loop → DEVOPS |
-| `/opsx:propose` | BA only — create specs from conversation |
-| `/opsx:sync` | DEV Lead only — sync specs into Beads tasks |
-| `/opsx:status` | Show combined progress (specs + Beads) |
+| `/opsx:sync` | Sync OpenSpec tasks into Beads with epics and dependencies |
+| `/opsx:status` | Show combined progress (OpenSpec + Beads) |
 
 One command runs the full pipeline. You describe the feature. Agents do the rest. You review the PR.
 
 ### Templates — Quick Start
 
-Starter configurations for new projects:
+Starter configurations (`templates/`) for new projects:
 
-- `CLAUDE.md` — project instructions template
-- `settings.json` — permission presets for agent workflows
-- Agent definition starters — customize for your stack
+- `CLAUDE.md.template` — project instructions template
+- `settings.json.template` — permission presets for agent workflows
 
 ## How It Works
 
@@ -95,25 +157,25 @@ Feature Request
 ## Quick Start
 
 ```bash
-# 1. Install dependencies
-npm install -g @fission-ai/openspec
-curl -fsSL https://github.com/fission-ai/beads/releases/latest/download/bd-$(uname -s | tr '[:upper:]' '[:lower:]')-$(uname -m) -o ~/.local/bin/bd && chmod +x ~/.local/bin/bd
+# 1. Clone agentflow into your project
+git clone https://github.com/<org>/agentflow .agentflow
 
-# 2. Clone agentflow into your project
-git clone https://github.com/<org>/agentflow .claude/agentflow
+# 2. Copy .claude into your project
+cp -r .agentflow/.claude .claude/
 
-# 3. Copy agents and skills into your project
-cp -r .claude/agentflow/agents/ .claude/agents/
-cp -r .claude/agentflow/skills/ .claude/skills/
-cp -r .claude/agentflow/flows/ .claude/commands/opsx/
+# 3. Open Claude Code and run the DEVOPS agent in INIT mode
+#    It will automatically:
+#    - Install Beads (bd) and OpenSpec if missing
+#    - Initialize the Beads database
+#    - Pull latest state and show context
+#    In Claude Code, use the DEVOPS agent:
+@devops INIT
 
-# 4. Initialize Beads
-bd init --dolt
-
-# 5. Start building
-# In Claude Code:
+# 4. Start building features
 /opsx:feature
 ```
+
+The DEVOPS agent handles all setup — no manual installation needed.
 
 ## Key Principles
 
@@ -130,3 +192,7 @@ bd init --dolt
 - [Beads](https://github.com/fission-ai/beads) — Issue tracking with dependency graphs and long memory
 - [Superpowers](https://skills.sh/obra/superpowers) — Behavioral skills for Claude Code
 - [Claude Code](https://claude.ai/claude-code) — Anthropic's CLI for Claude
+
+## License
+
+MIT
