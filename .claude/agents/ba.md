@@ -84,9 +84,20 @@ Show the user:
 - Task breakdown overview
 - Ask for confirmation before handing off
 
-### 5. Save to Memory
+### 5. Save to Beads Memory
 
-After creating specs, save key decisions and context to your agent memory for future reference.
+Save important decisions and discoveries using `bd memory create`:
+
+```bash
+cd /Users/vovuongthanhdat/Downloads/company/moso/ally-specs
+bd memory create <short-name> "<description>"
+```
+
+**When to save:**
+- Architecture decisions that affect multiple agents (e.g., "auth uses JWT not sessions")
+- Non-obvious requirements from user conversations
+- Constraints discovered during spec creation (e.g., "tenant must not import platform directly")
+- When TESTER reports a recurring failure pattern
 
 ## Mode 2: Handle TESTER Feedback
 

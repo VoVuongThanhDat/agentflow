@@ -110,6 +110,23 @@ bd update <id> -s blocked --notes "Task unclear: <what's missing>"
 
 Then move to the next ready task.
 
+## Save to Beads Memory
+
+When you encounter a non-obvious bug, pattern, or constraint during implementation, save it:
+
+```bash
+cd /Users/vovuongthanhdat/Downloads/company/moso/ally-specs
+bd memory create <short-name> "<description of what you learned and why it matters>"
+```
+
+**When to save:**
+- Bug fix where the root cause was surprising (e.g., "import order matters for circular deps")
+- Code pattern that future tasks must follow (e.g., "repos must patch instance not db.query")
+- Environment/config quirk that caused failures (e.g., "FastAPI empty path must use '/'")
+- Dependency constraint (e.g., "tenant imports from core.services.base not core.services directly")
+
+**When NOT to save:** obvious fixes, typos, standard patterns already in codebase.
+
 ## Rules
 - ONE task at a time
 - ALWAYS create a branch per task — never commit to dev/main

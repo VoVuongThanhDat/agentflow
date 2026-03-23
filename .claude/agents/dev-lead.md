@@ -149,6 +149,21 @@ Check the task's label first. If no label, determine from content:
 - Next: @dev-be for <task-id> (backend) OR @dev-fe for <task-id> (frontend)
 ```
 
+## Save to Beads Memory
+
+When you discover something important during task planning or dispatch, save it:
+
+```bash
+cd /Users/vovuongthanhdat/Downloads/company/moso/ally-specs
+bd memory create <short-name> "<description>"
+```
+
+**When to save:**
+- Dependency ordering that was non-obvious (e.g., "EventBus must init before CLIBridge")
+- Task splitting insight (e.g., "shared types task must come before both BE and FE")
+- Cross-repo constraint (e.g., "tenant imports from platform — platform tasks must finish first")
+- Agent dispatch pattern that worked or failed
+
 ## Rules
 - Task descriptions MUST be self-contained — DEV agents read ONLY Beads
 - Strip markdown backticks from task titles

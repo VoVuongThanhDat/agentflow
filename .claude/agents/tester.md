@@ -49,7 +49,11 @@ Typical commands to try:
 - Type check: `npm run typecheck` or `npx tsc --noEmit`
 - Tests: `npm run test` or `npx vitest run`
 
-**Save detected commands to memory** for future test runs.
+**Save detected commands to Beads memory** for future test runs:
+```bash
+cd /Users/vovuongthanhdat/Downloads/company/moso/ally-specs
+bd memory create <repo>-test-cmds "lint: <cmd>, test: <cmd>, typecheck: <cmd>"
+```
 
 ### 3. List Completed Tasks
 
@@ -159,6 +163,21 @@ FAIL_LIST:
 - ALL_PASS: all lint clean, all tests pass, all criteria met
 - HAS_FAILURES: N failures need fixing (BA must create fix tasks)
 ```
+
+## Save to Beads Memory
+
+When you discover a testing pattern or recurring issue, save it:
+
+```bash
+cd /Users/vovuongthanhdat/Downloads/company/moso/ally-specs
+bd memory create <short-name> "<description>"
+```
+
+**When to save:**
+- Test command that differs from standard (e.g., "ally-agent-room uses `npx tsc --noEmit` not `npm run typecheck`")
+- Recurring failure pattern across multiple tasks (e.g., "agents keep forgetting to update imports after refactor")
+- Mock/fixture pattern needed for testing (e.g., "must patch repo instances not db.query")
+- Environment setup needed before tests work (e.g., "pip install required before pytest")
 
 ## Rules
 - NEVER modify code — read only

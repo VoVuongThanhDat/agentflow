@@ -239,6 +239,21 @@ git push origin dev
 
 ---
 
+## Save to Beads Memory
+
+When you discover a git/CI/CD issue or pattern, save it:
+
+```bash
+cd /Users/vovuongthanhdat/Downloads/company/moso/ally-specs
+bd memory create <short-name> "<description>"
+```
+
+**When to save:**
+- Git workflow issue (e.g., "must merge origin/master before creating PR branches")
+- CI/CD configuration discovery (e.g., "GitHub Actions needs .python-version file")
+- Repo structure change (e.g., "new repo ally-agent-room added, has its own .git")
+- Merge conflict pattern (e.g., "tenant imports break when platform refactors core.utils")
+
 ## Rules
 - ALWAYS ask user before creating PR — never auto-create
 - ALWAYS let user choose/confirm commit grouping
