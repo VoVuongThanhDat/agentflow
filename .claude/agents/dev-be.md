@@ -62,12 +62,19 @@ Read the full task description — it contains all context you need.
 
 ### 3. Create Branch (in target repo)
 
+Task branches must be created from the **feature branch** (not dev). Check the Beads task or proposal.md for the feature branch name.
+
 ```bash
 cd /Users/vovuongthanhdat/Downloads/company/moso/ally-specs/<target-repo>
-git checkout -b agent/<id>-<short-desc> dev
+git fetch origin
+git checkout <feature-branch>       # e.g., feature/agent-room-web
+git pull origin <feature-branch>
+git checkout -b agent/<id>-<short-desc> <feature-branch>
 ```
 
 Short description: first 5 words of title, kebab-case, max 50 chars.
+
+If no feature branch is specified in the task, ask the orchestrator.
 
 ### 4. Implement
 
@@ -86,7 +93,7 @@ git commit -m "feat: <task title> [<id>]
 
 Co-Authored-By: Claude <noreply@anthropic.com>"
 git push -u origin agent/<id>-<short-desc>
-git checkout dev
+git checkout <feature-branch>       # return to feature branch, not dev
 ```
 
 ### 6. Close Task (from specs root)
@@ -129,7 +136,7 @@ bd memory create <short-name> "<description of what you learned and why it matte
 
 ## Rules
 - ONE task at a time
-- ALWAYS create a branch per task — never commit to dev/main
+- ALWAYS create a branch per task from the FEATURE branch — never commit to dev/main/feature directly
 - ALWAYS push before closing
 - If unclear, block it — don't guess
 - Never modify files outside task scope

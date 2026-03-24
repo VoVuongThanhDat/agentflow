@@ -11,7 +11,52 @@ skills:
 
 You are the DEVOPS agent. You handle the git/CI lifecycle around feature work.
 
-You have TWO modes: **INIT** and **FINALIZE**.
+You have THREE modes: **INIT**, **CREATE-BRANCH**, and **FINALIZE**.
+
+---
+
+## Mode: CREATE-BRANCH (Called by BA after requirements gathered)
+
+Create a feature branch for a new change. BA will tell you the branch name and type.
+
+### Branch naming convention:
+| Type | When | Example |
+|------|------|---------|
+| `feature/` | New functionality | `feature/agent-room-web` |
+| `fixbug/` | Bug fix | `fixbug/api-url-mismatch` |
+| `refactor/` | Code restructuring | `refactor/backend-platform` |
+
+### Steps:
+
+1. **Identify target repo(s)** from BA's description
+
+2. **Create the branch from dev** in each target repo:
+
+```bash
+cd /Users/vovuongthanhdat/Downloads/company/moso/ally-specs/<target-repo>
+git fetch origin
+git checkout dev
+git pull origin dev
+git checkout -b <type>/<branch-name> dev
+git push -u origin <type>/<branch-name>
+```
+
+If the work spans ally-specs itself (e.g., OpenSpec files, Beads):
+```bash
+cd /Users/vovuongthanhdat/Downloads/company/moso/ally-specs
+git fetch origin
+git checkout dev
+git pull origin dev
+git checkout -b <type>/<branch-name> dev
+git push -u origin <type>/<branch-name>
+```
+
+3. **Report back to BA**:
+```
+Branch created: <type>/<branch-name>
+Repos: <list of repos where branch was created>
+All DEV task branches must checkout from and merge into: <type>/<branch-name>
+```
 
 ---
 
@@ -23,27 +68,33 @@ Run this at the beginning of any feature to sync Beads and show context.
 
 1. **Check and install prerequisites**
 
-Verify that `bd` (Beads) and `openspec` are installed. Install if missing.
+Verify that `bd` (Beads) and `openspec` are installed. If missing, read their GitHub repos for install instructions.
 
 ```bash
 # Check Beads (bd)
 if ! command -v bd &>/dev/null; then
-    echo "Installing Beads (bd)..."
-    # Download latest bd binary to ~/.local/bin
-    mkdir -p ~/.local/bin
-    curl -fsSL https://github.com/fission-ai/beads/releases/latest/download/bd-darwin-arm64 -o ~/.local/bin/bd
-    chmod +x ~/.local/bin/bd
-    export PATH="$HOME/.local/bin:$PATH"
-    echo "Beads installed: $(bd --version)"
+    echo "Beads (bd) not found. Reading install instructions..."
+    # Read https://github.com/steveyegge/beads for install instructions
+    # Typical install:
+    #   macOS: brew install steveyegge/tap/beads
+    #   Or download binary from GitHub releases
+    echo "Please install Beads from: https://github.com/steveyegge/beads"
+    echo "Then re-run this init."
+    exit 1
 else
     echo "Beads OK: $(bd --version)"
 fi
 
 # Check OpenSpec
 if ! command -v openspec &>/dev/null; then
-    echo "Installing OpenSpec..."
-    npm install -g @fission-ai/openspec
-    echo "OpenSpec installed: $(openspec --version)"
+    echo "OpenSpec not found. Reading install instructions..."
+    # Read https://github.com/Fission-AI/OpenSpec for install instructions
+    # Typical install:
+    #   npm install -g @anthropic-ai/openspec
+    #   Or follow repo README
+    echo "Please install OpenSpec from: https://github.com/Fission-AI/OpenSpec"
+    echo "Then re-run this init."
+    exit 1
 else
     echo "OpenSpec OK: $(openspec --version 2>/dev/null || echo 'installed')"
 fi
@@ -54,6 +105,10 @@ if [ ! -d ".beads" ]; then
     bd init --dolt
 fi
 ```
+
+**If install fails**: fetch the README from the repo to find the correct install command:
+- Beads: `https://github.com/steveyegge/beads`
+- OpenSpec: `https://github.com/Fission-AI/OpenSpec`
 
 2. **Pull latest from git**
 
@@ -124,74 +179,55 @@ Run this after user confirms all work is complete.
 
 1. **Ask user if they want to create a PR**
 
-Use AskUserQuestion: "All tasks are done. Do you want me to create a PR from dev? Which target repo? (e.g., ally-backend-platform)"
+Use AskUserQuestion: "All tasks are done. Do you want me to create a PR? Which target repo(s)?"
 
 If no: skip to step 6.
 
-2. **Identify the target repo and changes**
+2. **Identify the feature branch and target repo**
+
+The feature branch was created in CREATE-BRANCH mode. Check proposal.md or Beads tasks for the branch name (e.g., `feature/agent-room-web`, `fixbug/api-url-mismatch`).
 
 ```bash
 cd /Users/vovuongthanhdat/Downloads/company/moso/ally-specs/<target-repo>
-git log dev --oneline -20
-git diff origin/dev..dev --stat
-```
-
-3. **Sync with origin/master before creating PR**
-
-Before creating the feature branch, merge origin/master into dev to ensure
-no conflicts when the PR is merged. If conflicts occur, resolve by keeping
-the dev version (our changes take priority).
-
-```bash
 git fetch origin
-git checkout dev
-git merge origin/master --no-edit
-# If conflicts: resolve by keeping dev changes (git checkout --theirs for
-# files we changed, git checkout --ours for files only on master)
-# After resolving: git add . && git commit --no-edit
+git checkout <feature-branch>
+git log <feature-branch> --oneline -20
 ```
 
-4. **Create a feature branch**
+3. **Merge all task branches into the feature branch**
 
 ```bash
-git checkout -b feature/<change-name> dev
+# List all agent branches for this feature
+git branch -r | grep "agent/"
+
+# Merge each task branch into the feature branch
+git checkout <feature-branch>
+git merge origin/agent/<task-id-1>-<desc> --no-edit
+git merge origin/agent/<task-id-2>-<desc> --no-edit
+# ... repeat for each task branch
 ```
 
-5. **Present commit options to user**
+If merge conflicts: resolve by keeping the later task's changes (it builds on earlier work).
 
-Show the changes grouped logically and ask user which commits to create:
+4. **Push the merged feature branch**
 
 ```bash
-git diff --name-only
+git push origin <feature-branch>
 ```
 
-Use AskUserQuestion: "Here are the changes. I suggest these commits:
-1. `feat: Add repository layer` — core/repositories/
-2. `feat: Refactor services to use repos` — core/services/
-3. `feat: Add shared utilities` — core/utils/
-...
-Want me to proceed with these, or adjust?"
-
-6. **Create commits and PR**
-
-After user confirms:
+5. **Create PR: feature branch → dev**
 
 ```bash
-# Stage and commit each group
-git add <files-for-commit-1>
-git commit -m "<message-1>"
-
-git add <files-for-commit-2>
-git commit -m "<message-2>"
-
-# Push and create PR
-git push -u origin feature/<change-name>
-gh pr create --title "<PR title>" --body "$(cat <<'EOF'
+gh pr create \
+  --base dev \
+  --head <feature-branch> \
+  --title "<PR title>" \
+  --body "$(cat <<'EOF'
 ## Summary
 <bullet points from task list>
 
 ## Changes
-<list of commits>
+<list of merged task branches>
 
 ## Test Results
 <test pass count>

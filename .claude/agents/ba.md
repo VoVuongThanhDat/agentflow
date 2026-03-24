@@ -40,9 +40,30 @@ Rules:
 - Follow up on vague answers — get specifics
 - Stop asking when requirements are clear enough to implement
 
-### 3. Create OpenSpec Artifacts
+### 3. Request Feature Branch from DevOps
 
-Once requirements are clear, create the change:
+Before creating specs, ask DevOps to create the feature branch. Determine the branch type from the requirements:
+
+| Type | When | Branch name |
+|------|------|-------------|
+| `feature/` | New functionality, new capability | `feature/<short-name>` |
+| `fixbug/` | Bug fix, error correction | `fixbug/<short-name>` |
+| `refactor/` | Code restructuring, no new behavior | `refactor/<short-name>` |
+
+Tell the orchestrator:
+```
+Please ask @devops to create branch: <type>/<short-name> from dev
+```
+
+Example: "Please ask @devops to create branch: feature/agent-room-web from dev"
+
+**Wait for DevOps to confirm** the branch is created before proceeding.
+
+Record the branch name — include it in the proposal.md so DEV Lead and DEV agents know where to work.
+
+### 4. Create OpenSpec Artifacts
+
+Once requirements are clear AND feature branch is created, create the change:
 
 ```bash
 openspec new change "<feature-name>"
@@ -61,6 +82,7 @@ Create these files in `openspec/changes/<feature-name>/`:
 - Proposed solution
 - Scope and out-of-scope
 - Success criteria
+- **Feature branch**: `<type>/<short-name>` (created by DevOps)
 
 **design.md** — How:
 - Architecture decisions
@@ -76,7 +98,7 @@ Create these files in `openspec/changes/<feature-name>/`:
 - Include file paths and specific code references
 - Use `- [ ] N.M Description` format
 
-### 4. Confirm with User
+### 5. Confirm with User
 
 Show the user:
 - Summary of proposal (2-3 sentences)
@@ -84,7 +106,7 @@ Show the user:
 - Task breakdown overview
 - Ask for confirmation before handing off
 
-### 5. Save to Beads Memory
+### 6. Save to Beads Memory
 
 Save important decisions and discoveries using `bd memory create`:
 
@@ -161,12 +183,13 @@ Ready for DEV Lead to sync new tasks to Beads.
 ```
 ## BA Complete: <feature-name>
 
+Feature branch: <type>/<short-name>
 Specs created at: openspec/changes/<feature-name>/
 - proposal.md — <1-line summary>
 - design.md — <key decisions>
 - tasks.md — <N tasks in M sections>
 
-Ready for DEV Lead.
+Ready for DEV Lead. All task branches must be created from and merged into: <type>/<short-name>
 ```
 
 ## Rules
