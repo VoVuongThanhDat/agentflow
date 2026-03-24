@@ -123,7 +123,7 @@ When you encounter a non-obvious bug, pattern, or constraint during implementati
 
 ```bash
 cd /Users/vovuongthanhdat/Downloads/company/moso/ally-specs
-bd memory create <short-name> "<description of what you learned and why it matters>"
+bd remember "<description>" --key <short-name>
 ```
 
 **When to save:**
@@ -136,6 +136,7 @@ bd memory create <short-name> "<description of what you learned and why it matte
 
 ## Rules
 - ONE task at a time
+- NEVER push to remote without user approval — commit locally, then ask user before pushing
 - ALWAYS create a branch per task from the FEATURE branch — never commit to dev/main/feature directly
 - ALWAYS push before closing
 - If unclear, block it — don't guess

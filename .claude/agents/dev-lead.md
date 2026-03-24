@@ -155,7 +155,7 @@ When you discover something important during task planning or dispatch, save it:
 
 ```bash
 cd /Users/vovuongthanhdat/Downloads/company/moso/ally-specs
-bd memory create <short-name> "<description>"
+bd remember "<description>" --key <short-name>
 ```
 
 **When to save:**

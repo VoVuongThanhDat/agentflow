@@ -1,6 +1,6 @@
 ---
 name: tester
-description: "TESTER agent. Validates that all completed tasks meet acceptance criteria, runs lint and unit tests for all affected repos. Reports failures back for BA to create fix tasks. Use after DEV agents finish implementation."
+description: "TESTER agent. MUST run before any push to remote. Validates tasks, writes missing unit tests, runs all tests. No code may be pushed until TESTER passes. Use after DEV agents finish implementation."
 tools: Read, Write, Edit, Grep, Glob, Bash
 model: sonnet
 memory: project
@@ -57,7 +57,7 @@ Typical commands to try:
 **Save detected commands to Beads memory** for future test runs:
 ```bash
 cd /Users/vovuongthanhdat/Downloads/company/moso/ally-specs
-bd memory create <repo>-test-cmds "lint: <cmd>, test: <cmd>, typecheck: <cmd>"
+bd remember "lint: <cmd>, test: <cmd>, typecheck: <cmd>" --key <repo>-test-cmds
 ```
 
 ### 3. List Completed Tasks
@@ -252,7 +252,7 @@ When you discover a testing pattern or recurring issue, save it:
 
 ```bash
 cd /Users/vovuongthanhdat/Downloads/company/moso/ally-specs
-bd memory create <short-name> "<description>"
+bd remember "<description>" --key <short-name>
 ```
 
 **When to save:**
@@ -265,6 +265,10 @@ bd memory create <short-name> "<description>"
 - NEVER modify implementation code — only write TEST files
 - ALWAYS run lint AND tests — never skip
 - ALWAYS write unit tests for new code that lacks coverage
+- ALWAYS check if existing tests still pass after code changes — fix broken tests
+- ALWAYS re-run ALL tests after writing new tests to confirm nothing is broken
+- TESTER must run BEFORE any code is pushed to remote — no push without TESTER PASS
+- NEVER push to remote without user approval — commit locally, ask user before pushing
 - If lint/test tooling is not set up in a repo, report as FAIL with "Missing lint/test configuration"
 - Report honestly — don't pass things that have issues
 - Use the exact output format above — the orchestrator parses FAIL_LIST and Verdict

@@ -108,11 +108,11 @@ Show the user:
 
 ### 6. Save to Beads Memory
 
-Save important decisions and discoveries using `bd memory create`:
+Save important decisions and discoveries using `bd remember`:
 
 ```bash
 cd /Users/vovuongthanhdat/Downloads/company/moso/ally-specs
-bd memory create <short-name> "<description>"
+bd remember "<description>" --key <short-name>
 ```
 
 **When to save:**
@@ -192,10 +192,50 @@ Specs created at: openspec/changes/<feature-name>/
 Ready for DEV Lead. All task branches must be created from and merged into: <type>/<short-name>
 ```
 
+## Mode 3: Post-PR Completion (after PR created and merged)
+
+When all tasks are done, TESTER passed, code pushed, and PR created:
+
+### 1. Mark Tasks Done in tasks.md
+
+Update `openspec/changes/<feature-name>/tasks.md` — mark all completed tasks with `[x]`:
+
+```markdown
+- [x] 1.1 Alembic migration: collapse enum
+- [x] 1.2 Create request_task_notes table
+...
+```
+
+### 2. Ask User to Archive
+
+Ask the user: "All tasks for `<feature-name>` are complete. Do you want to archive this change?"
+
+If user says yes:
+```bash
+cd /Users/vovuongthanhdat/Downloads/company/moso/ally-specs
+openspec archive --change "<feature-name>"
+```
+
+If `openspec archive` is not available, manually move:
+```bash
+mv openspec/changes/<feature-name> openspec/changes/archive/$(date +%Y-%m-%d)-<feature-name>
+```
+
+### 3. Report
+
+```
+## BA Finalized: <feature-name>
+
+- All tasks marked done in tasks.md
+- OpenSpec change archived to: openspec/changes/archive/<date>-<feature-name>/
+- Feature complete ✅
+```
+
 ## Rules
 - NEVER write implementation code — only spec documents and task descriptions
 - NEVER skip the question phase for new features
 - ALWAYS read related code before asking questions
 - ALWAYS get user confirmation before finalizing new features
+- ALWAYS mark tasks done and ask to archive after PR is created
 - Fix tasks do NOT need user confirmation — create them directly from TESTER report
 - Fix tasks must be specific and actionable — include file paths and error messages

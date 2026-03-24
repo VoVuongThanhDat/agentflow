@@ -110,33 +110,43 @@ fi
 - Beads: `https://github.com/steveyegge/beads`
 - OpenSpec: `https://github.com/Fission-AI/OpenSpec`
 
-2. **Pull latest from git**
+2. **Pull latest from git (including Beads exports)**
 
 ```bash
 cd /Users/vovuongthanhdat/Downloads/company/moso/ally-specs
 git pull origin dev --rebase 2>/dev/null || true
 ```
 
-3. **Import Beads state and memories**
+3. **Import Beads tasks and memories from git-tracked files**
+
+ALWAYS import both tasks and memories to ensure local Dolt DB is in sync:
 
 ```bash
-# Import issues
-bd import 2>/dev/null || true
+cd /Users/vovuongthanhdat/Downloads/company/moso/ally-specs
 
-# Import memories from git-tracked file (for new machines)
+# Import tasks from git-tracked export
+if [ -f "beads-export.jsonl" ]; then
+    echo "Importing Beads tasks..."
+    bd import < beads-export.jsonl 2>/dev/null || true
+fi
+
+# Import memories from git-tracked file
 if [ -f "beads-memories.json" ]; then
+    echo "Importing Beads memories..."
     python3 -c "
 import json, subprocess
 with open('beads-memories.json') as f:
     memories = json.load(f)
+imported = 0
+skipped = 0
 for key, value in memories.items():
-    # Check if memory already exists
     result = subprocess.run(['bd', 'recall', key], capture_output=True, text=True)
     if result.returncode != 0:
         subprocess.run(['bd', 'remember', value, '--key', key])
-        print(f'  Imported: {key}')
+        imported += 1
     else:
-        print(f'  Skipped (exists): {key}')
+        skipped += 1
+print(f'  Memories: {imported} imported, {skipped} skipped (already exist)')
 "
 fi
 ```
@@ -209,8 +219,11 @@ git merge origin/agent/<task-id-2>-<desc> --no-edit
 
 If merge conflicts: resolve by keeping the later task's changes (it builds on earlier work).
 
-4. **Push the merged feature branch**
+4. **Ask user before pushing**
 
+Ask: "Feature branch is ready with all task branches merged. Push to remote?"
+
+Only push after user approves:
 ```bash
 git push origin <feature-branch>
 ```
@@ -239,20 +252,28 @@ EOF
 
 Return ALL PR URLs to the user in the output summary. Never skip showing PR links.
 
-7. **Export and push Beads state + memories**
+6. **Export and push Beads state + memories**
+
+ALWAYS export after any work is done — this keeps git-tracked files in sync with Dolt DB:
 
 ```bash
 cd /Users/vovuongthanhdat/Downloads/company/moso/ally-specs
 
-# Export issues and memories for git tracking
+# Export tasks and memories to git-tracked files
 bd export -o beads-export.jsonl
 bd memories --json > beads-memories.json
+
+echo "Exported $(wc -l < beads-export.jsonl) tasks and $(python3 -c 'import json; print(len(json.load(open("beads-memories.json"))))') memories"
 
 # Commit to ally-specs repo
 git add beads-export.jsonl beads-memories.json
 git commit -m "chore: Update Beads state after <change-name>
 
 Co-Authored-By: Claude <noreply@anthropic.com>"
+```
+
+Ask user: "Push Beads state to git?" — only push after approval:
+```bash
 git push origin dev
 ```
 
@@ -281,7 +302,7 @@ When you discover a git/CI/CD issue or pattern, save it:
 
 ```bash
 cd /Users/vovuongthanhdat/Downloads/company/moso/ally-specs
-bd memory create <short-name> "<description>"
+bd remember "<description>" --key <short-name>
 ```
 
 **When to save:**
@@ -291,8 +312,10 @@ bd memory create <short-name> "<description>"
 - Merge conflict pattern (e.g., "tenant imports break when platform refactors core.utils")
 
 ## Rules
+- NEVER push to remote without user approval — always ask before git push
 - ALWAYS ask user before creating PR — never auto-create
 - ALWAYS let user choose/confirm commit grouping
+- ALWAYS ensure TESTER has passed before pushing — no push without test pass
 - ALWAYS push Beads state after finalization
 - Target repo for PR is the CODE repo (e.g., ally-backend-platform), not ally-specs
 - Beads state is pushed to ally-specs repo (where .beads/ lives)
