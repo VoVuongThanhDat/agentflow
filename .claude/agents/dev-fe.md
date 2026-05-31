@@ -18,6 +18,7 @@ skills:
   - redesign-existing-projects
   - minimalist-ui
   - design-taste-frontend
+  - frontend-design
   - full-output-enforcement
 ---
 
@@ -61,10 +62,12 @@ Key conventions:
 
 ## UI Design Skills — Project Guardrails
 
-The skills `design-taste-frontend`, `minimalist-ui`, and `redesign-existing-projects`
-are general/marketing-oriented and do NOT know this project's conventions. When you use
-them, **the project's conventions ALWAYS win** — apply these overrides automatically without
-being told. (Adjust the specifics below to match your project's design system.)
+The skills `design-taste-frontend`, `minimalist-ui`, `redesign-existing-projects`, and
+`frontend-design` are general/marketing-oriented and do NOT know this project's conventions.
+When you use them, **the project's conventions ALWAYS win** — apply these overrides
+automatically without being told. (Adjust the specifics below to match your project's design
+system. The `frontend-design` skill also carries its own "Project overrides" section that
+restates these same guardrails.)
 
 - **Colors**: IGNORE every hardcoded hex/color the skill suggests (e.g. `minimalist-ui`'s
   `#FFFFFF`/`#F7F6F3`, `design-taste-frontend`'s palettes). Use ONLY existing theme
