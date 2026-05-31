@@ -1,11 +1,15 @@
 ---
 name: "OPSX: Feature"
-description: "End-to-end feature pipeline: BA → DEV Lead → DEV Agents → TESTER → fix loop until all pass"
+description: "End-to-end feature pipeline: BA → DEVOPS branch → opsx-feature-core workflow (plan→implement→review→verify→critic→test) → push"
 category: Workflow
-tags: [workflow, orchestrator, multi-agent, pipeline]
+tags: [workflow, orchestrator, multi-agent, pipeline, dynamic-workflow]
 ---
 
-Run the full feature pipeline with specialized subagents. Loops until TESTER passes everything.
+Run the full feature pipeline. The interactive ends (requirements + push approval) stay here;
+the heavy implementation core runs as the **`opsx-feature-core` dynamic workflow** — it
+decomposes an OpenSpec change into in-memory, file-disjoint, dependency-ordered task waves and
+fans dev-be/dev-fe + reviewers + tester over them, with in-memory task passing (no task DB on
+the critical path).
 
 **Input**: A feature description or request from the user.
 
@@ -14,149 +18,107 @@ Run the full feature pipeline with specialized subagents. Loops until TESTER pas
 ```
 User Request
      ↓
-  @ba (ask questions, create specs)
+  @ba ............................ ask questions, create OpenSpec specs   (interactive)
      ↓
-  @dev-lead (create Beads tasks + deps)
+  @devops ........................ create feature branch from dev          (interactive)
      ↓
-  @dev x N (implement in parallel)          ←──┐
-     ↓                                         │
-  @tester (lint + tests + validate)            │
-     ↓                                         │
-  ALL_PASS? ── no ──→ @ba (create fix tasks) ──┘
-     │
+  Workflow: opsx-feature-core .... Plan → Implement → Review → Verify →
+                                   Critic → Test  (parallel, background)
+     ↓
+  blockingFindings == 0 && test.passed ?
+     │ no  →  surface findings/failures → re-run workflow or targeted fix
     yes
+     ↓
+  user approves push → @devops (commit check + PR → dev)                   (interactive)
      ↓
   Report to User
 ```
 
 **Steps**
 
-### Phase 1: BA — Gather Requirements (foreground)
+### Phase 1: BA — Gather Requirements (interactive)
 
-Delegate to the `ba` subagent. It will:
-- Ask the user targeted questions (2-3 rounds)
-- Read the codebase for context
-- Create OpenSpec artifacts: proposal.md, design.md, tasks.md
-- Confirm with the user
+Delegate to the `ba` subagent. It will ask the user 2–3 rounds of questions, read the codebase,
+and create OpenSpec artifacts. Wait for completion, then verify:
 
-Wait for BA to complete. Verify artifacts exist:
 ```bash
-ls openspec/changes/<name>/proposal.md openspec/changes/<name>/design.md openspec/changes/<name>/tasks.md
+ls openspec/changes/<change-id>/proposal.md openspec/changes/<change-id>/design.md openspec/changes/<change-id>/tasks.md
 ```
 
-### Phase 2: DEV Lead — Create Beads (foreground)
+### Phase 2: DEVOPS — Create Feature Branch (interactive)
 
-Delegate to the `dev-lead` subagent with the change name.
+Delegate to the `devops` subagent: create `feature/<name>` (or `fixbug/`/`refactor/`) from `dev`
+in each target sub-repo AND in `<specs-repo>/`. The workflow runs ON this branch — it does not
+create branches.
 
-It will:
-- Read the specs BA created
-- Create Beads epics + tasks with self-contained descriptions
-- Analyze and create cross-task dependencies
+### Phase 3: Implementation Core — run the workflow (background)
 
-Wait for completion. Verify:
-```bash
-bd ready --json
-```
-
-### Phase 3: DEV Agents — Implement (parallel, background)
-
-Check ready tasks:
-```bash
-bd ready --json
-```
-
-Launch multiple `dev` subagents in parallel (one per ready task, max 5). Each runs in its own worktree.
-
-After all DEV agents complete, check if new tasks became unblocked:
-```bash
-bd ready --json
-```
-
-If more tasks are ready, launch another round. Repeat until all tasks are closed or blocked.
-
-### Phase 4: TESTER — Validate (foreground)
-
-Delegate to the `tester` subagent with the change name.
-
-It will:
-- Detect and run lint for all affected repos
-- Detect and run unit tests for all affected repos
-- Validate each branch against acceptance criteria
-- Check for missing unit tests on new code
-- Produce a report with FAIL_LIST and Verdict
-
-### Phase 5: Check Verdict — Loop or Complete
-
-Parse the TESTER's output for the `Verdict` line:
-
-**If `ALL_PASS`:**
-- Proceed to Final Report (Phase 6)
-
-**If `HAS_FAILURES`:**
-- Extract the `FAIL_LIST` from TESTER's report
-- Go to Phase 5a: Fix Loop
-
-### Phase 5a: Fix Loop
-
-Track the current round number (start at 1, increment each loop).
-
-**5a.1 — BA creates fix tasks (foreground)**
-
-Delegate to `ba` subagent with the TESTER's failure report:
-- Pass the full FAIL_LIST
-- BA will add fix tasks to tasks.md
-- BA does NOT ask user questions in fix mode — creates tasks directly
-
-**5a.2 — DEV Lead syncs new tasks (foreground)**
-
-Delegate to `dev-lead` subagent:
-- Read the updated tasks.md
-- Create new Beads tasks for the fix section only
-- Add dependencies as needed
-
-**5a.3 — DEV Agents implement fixes (parallel, background)**
-
-Same as Phase 3 — launch DEV agents for the new ready tasks.
-
-**5a.4 — TESTER re-validates (foreground)**
-
-Same as Phase 4 — run full lint + tests + validation again.
-
-**5a.5 — Check Verdict again**
-
-- If `ALL_PASS`: proceed to Final Report
-- If `HAS_FAILURES`: increment round, go back to 5a.1
-- If round > 3: stop and report to user — "3 fix rounds attempted, still failing. Manual intervention needed."
-
-### Phase 6: Final Report
+Run the dynamic workflow, passing the OpenSpec change id:
 
 ```
-## Feature Complete: <feature-name>
+Workflow({ name: 'opsx-feature-core', args: { changeId: '<change-id>', base: 'dev' } })
+```
 
-### Pipeline Summary
-- BA: Requirements gathered, specs created
-- DEV Lead: N epics, M tasks created
-- DEV Agents: M tasks implemented
-- TESTER: All passed (after K rounds)
+This single workflow does, in order:
+- **Plan** — `dev-lead` decomposes the OpenSpec change into file-disjoint, dependency-ordered
+  task *waves* (in-memory — no task DB).
+- **Implement** — `dev-be`/`dev-fe` run in parallel per wave (sequential across waves), each
+  given its task directly and committing on the branch.
+- **Review** — `python-reviewer`, `typescript-reviewer`, `security-reviewer`,
+  `silent-failure-hunter` fan out over the diff (structured findings).
+- **Verify** — each CRITICAL/HIGH finding is judged by 3 perspective lenses; kept only on ≥2/3 vote.
+- **Critic** — a completeness critic catches HIGH/CRITICAL the reviewers missed (also verified).
+- **Test** — `tester` writes missing unit tests + runs the full suite.
 
-### Lint & Test Results
-| Repo | Lint | Tests |
-|------|------|-------|
-| <repo> | PASS | PASS (N/N) |
+The workflow returns: `{ readyToPush, blockingFindings, criticAdded, otherFindings, test, tasks, filesChanged }`.
 
-### Branches Ready for Review
-- agent/<id>-... → <task title>
-- agent/<id>-... → <task title>
+### Phase 4: Gate — loop or proceed
 
-### Next Steps
-- Review and merge branches to dev
-- /opsx:archive <feature-name> when satisfied
+Read the workflow result:
+
+- **`readyToPush === true`** (no surviving CRITICAL/HIGH and tests pass) → go to Phase 5.
+- **Otherwise** → surface `blockingFindings` + `test.failures` to the user, then either:
+  - re-run the workflow (it re-plans/implements fixes), capped at **3 rounds**, or
+  - dispatch a targeted `@dev-be`/`@dev-fe` fix for the specific blocking findings, then re-run
+    the Review→Verify→Test tail.
+  - After 3 rounds still failing → stop and escalate to the user.
+
+### Phase 5: Push — user approval (interactive)
+
+NEVER auto-push. Show the Final Report, then ask the user to approve. On approval, delegate to
+`devops`: confirm clean tree, push branches, open the PR(s) → `dev` (one PR per repo).
+
+### Phase 6: Report
+
+Long-term memory: a replacement memory system is being introduced (TBD).
+
+Final Report:
+
+```
+## Feature Complete: <change-id>
+
+### Workflow Summary
+- Plan: N waves, M tasks
+- Implement: M tasks committed
+- Review+Verify: B blocking (CRITICAL/HIGH after ≥2/3 lens vote), +C from completeness critic
+- Other findings (MEDIUM/LOW): D
+- Tests: PASS (E added) / FAIL
+
+### Blocking findings (must be empty to push)
+<blockingFindings>
+
+### Branches → PR
+- <repo> feature/<name> → PR #<n> (dev)
+
+### Next
+- /opsx:archive <change-id> when merged
 ```
 
 **Guardrails**
-- BA phase (new feature) MUST be interactive — confirm with user
-- BA phase (fix tasks) does NOT need user confirmation — create directly from TESTER report
-- Max 3 fix rounds — after that, escalate to user
-- Max 5 parallel DEV agents per round
-- Each phase must complete before the next starts (except parallel DEV agents)
-- Subagents cannot spawn other subagents — all orchestration happens here
+- BA phase (new feature) MUST be interactive — confirm with the user. Fix re-runs do NOT need confirmation.
+- DEVOPS creates the branch BEFORE the workflow; the workflow runs on the existing branch.
+- NEVER push without explicit user approval (Push Policy in AGENTS.md).
+- The workflow's Test phase + `blockingFindings === 0` is the gate — equivalent to "TESTER must pass before push".
+- Max 3 fix rounds — then escalate.
+- The workflow does the multi-agent orchestration; do NOT also launch reviewers/dev agents manually for the same change (double-runs them). Manual `@reviewer`/`@dev-*` calls are for small, out-of-pipeline one-offs.
+- Do NOT delete the subagents (`dev-lead`, `dev-be`, `dev-fe`, the reviewers, `tester`) — the workflow invokes them by `agentType`.
