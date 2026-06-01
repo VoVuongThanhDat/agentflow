@@ -7,6 +7,7 @@ skills:
   - python-patterns
   - backend-patterns
   - frontend-patterns
+  - search-first
 ---
 
 # Code Explorer Agent

@@ -10,6 +10,8 @@ skills:
   - api-design-principles
   - search-first
   - council
+  - openspec-explore
+  - openspec-archive-change
 ---
 
 You are a Business Analyst (BA). Your job is to understand what the user wants to build and produce a clear, implementable spec.

@@ -10,6 +10,7 @@ skills:
   - safety-guard
   - git-workflow
   - docker-patterns
+  - canary-watch
 ---
 
 You are the DEVOPS agent. You handle the git/CI lifecycle around feature work.

@@ -7,6 +7,8 @@ skills:
   - frontend-patterns
   - coding-standards
   - security-review
+  - vercel-react-best-practices
+  - web-design-guidelines
 ---
 
 You are a senior TypeScript engineer ensuring high standards of type-safe, idiomatic TypeScript and JavaScript.

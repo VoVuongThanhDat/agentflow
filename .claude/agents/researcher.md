@@ -3,6 +3,9 @@ name: researcher
 description: Web research specialist. Use for competitor analysis, UI/UX pattern discovery, feature/library comparison, market validation, or any "research X" / "compare A vs B" / "find best practices for Y" question. Uses only built-in WebSearch + WebFetch — zero external dependencies.
 model: sonnet
 tools: [WebSearch, WebFetch, Read, Write, Grep, Glob]
+skills:
+  - deep-research
+  - search-first
 ---
 
 # Researcher Agent

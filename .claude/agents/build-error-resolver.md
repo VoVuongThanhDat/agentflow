@@ -7,6 +7,7 @@ skills:
   - safety-guard
   - python-patterns
   - frontend-patterns
+  - systematic-debugging
 ---
 
 # Build Error Resolver

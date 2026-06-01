@@ -6,6 +6,7 @@ tools: [Read, Grep, Glob, Bash]
 skills:
   - python-patterns
   - coding-standards
+  - frontend-patterns
 ---
 
 # Silent Failure Hunter Agent

@@ -133,13 +133,14 @@ if (!CHANGE) {
 // ── Phase 1: PLAN (replaces DEV Lead + Beads import) ─────────────────────────
 phase('Plan')
 const plan = await agent(
-  `You are the DEV Lead. Read the OpenSpec change at \`openspec/changes/${CHANGE}/\` ` +
-  `(proposal.md, design.md, tasks.md, specs/**). Decompose it into concrete implementation tasks.\n\n` +
-  `Group tasks into ORDERED WAVES with these rules:\n` +
+  `You are the DEV Lead. The OpenSpec change at \`openspec/changes/${CHANGE}/tasks.md\` ALREADY contains the full, concrete, file-disjoint, dependency-ordered task list — each task already names its target repo, the exact files it touches, and acceptance criteria. ` +
+  `Read ONLY tasks.md (and design.md if you must resolve a file path). Your single job is to GROUP those existing tasks into ORDERED WAVES.\n\n` +
+  `CRITICAL: Do NOT re-derive or invent tasks, and do NOT explore/grep/read the source codebase — that analysis is already baked into tasks.md. Be fast; output the grouping directly.\n\n` +
+  `Wave rules:\n` +
   `- Tasks WITHIN a wave MUST touch DISJOINT files so they can run in parallel without conflicting.\n` +
   `- A task that depends on another task's output goes in a LATER wave.\n` +
   `- Label each task layer 'be' (Python/FastAPI backend repo) or 'fe' (React/Vite frontend repo) ` +
-  `and set its target repo + the exact files it will touch + a conventional commit message ` +
+  `and set its target repo + the exact files it will touch (copy from tasks.md) + a conventional commit message ` +
   `("feat:/fix:/refactor: <title> [<id>]").\n` +
   `Do NOT write anything to Beads. Return the wave plan as structured output only.`,
   { agentType: 'dev-lead', phase: 'Plan', schema: PLAN_SCHEMA, label: `plan:${CHANGE}` },
